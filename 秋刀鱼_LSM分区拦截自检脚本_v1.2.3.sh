@@ -16,7 +16,7 @@ BYNAME_DIR="/dev/block/by-name"
 is_excluded() {
   local name="$1"
   case "$name" in
-    boot*|init_boot*|vendor_boot*|userdata*|metadata*|cache*|misc*|dtbo*)
+    boot*|init_boot*|vendor_boot*|userdata*|metadata*|cache*|misc*|dtbo*|vbmeta_*|vbmeta|vbmeta_system|vbmeta_vendor|recovery)
       return 0 ;;
     *) return 1 ;;
   esac
