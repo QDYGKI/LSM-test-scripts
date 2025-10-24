@@ -3,22 +3,30 @@
 # 动态验证 LSM 写时拦截（安全检测 + 失败回滚首字节）
 # 说明：本脚本将遍历 /dev/block/by-name/ 下的所有块设备真实分区，并排除*boot分区，仅写首字节做拦截自检，失败时将触发回滚
 
-ESC_G="\033[32m"; ESC_R="\033[31m"; ESC_Y="\033[33m"; ESC_N="\033[0m"
+ESC_G="\033[32m"
+ESC_R="\033[31m"
+ESC_Y="\033[33m"
+ESC_N="\033[0m"
 ESC_M="\033[35m"
 
 echo "===== LSM受保护分区自检 ====="
 date
 
 BYNAME_DIR="/dev/block/by-name"
-[ ! -d "$BYNAME_DIR" ] && { echo "找不到 $BYNAME_DIR，退出"; exit 1; }
-
+[ ! -d "$BYNAME_DIR" ] && {
+  echo "找不到 $BYNAME_DIR，退出"
+  exit 1
+}
 
 is_excluded() {
   local name="$1"
   case "$name" in
-    boot*|init_boot*|vendor_boot*|userdata*|metadata*|cache*|misc*|dtbo*|vbmeta_*|vbmeta|vbmeta_system_*|vbmeta_vendor_*|recovery_*)
-      return 0 ;;
-    *) return 1 ;;
+  boot* | init_boot* | vendor_boot* | userdata* | metadata* | cache* | misc* | dtbo* | vbmeta_* | vbmeta_system* | vbmeta_vendor* | recovery*)
+    if [[ "$name" == *_a ]]; then
+      return 0
+    fi
+    ;;
+  *) return 1 ;;
   esac
 }
 
@@ -27,8 +35,8 @@ SEEN_DEVICES=""
 
 seen_has() {
   case " $SEEN_DEVICES " in
-    *" $1 "*) return 0 ;;
-    *) return 1 ;;
+  *" $1 "*) return 0 ;;
+  *) return 1 ;;
   esac
 }
 
@@ -60,7 +68,7 @@ for link in "$BYNAME_DIR"/*; do
   seen_add "$REALDEV"
 
   echo "---- 测试 ${BNAME} -> ${REALDEV} ----"
-  COUNT=$((COUNT+1))
+  COUNT=$((COUNT + 1))
 
   PRE="$(dd if="$REALDEV" bs=1 count=1 2>/dev/null | od -An -tx1 2>/dev/null | tr -d ' \n')"
   [ -z "$PRE" ] && PRE="--"
